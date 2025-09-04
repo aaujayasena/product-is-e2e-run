@@ -39,7 +39,7 @@ TEST_REPOSITORY_PACK_DIR="$TESTGRID_DIR/$TEST_REPOSITORY_NAME"
 
 # CloudFormation properties
 CFN_PROP_FILE="${TESTGRID_DIR}/cfn-props.properties"
-TEST_RUN_COMMAND="${TEST_RUN_COMMAND:-npm run test}"
+TEST_RUN_COMMAND="${TEST_RUN_COMMAND:-npm run test-onprem}"
 
 
 JDK_TYPE=$(grep -w "JDK_TYPE" ${CFN_PROP_FILE} | cut -d"=" -f2)
@@ -53,6 +53,22 @@ CF_DB_PORT=$(grep -w "CF_DB_PORT" ${CFN_PROP_FILE} | cut -d"=" -f2)
 CF_DB_NAME=$(grep -w "SID" ${CFN_PROP_FILE} | cut -d"=" -f2)
 PRODUCT_PACK_LOCATION=$(grep -w "PRODUCT_PACK_LOCATION" ${CFN_PROP_FILE} | cut -d"=" -f2)
 
+echo "JDK_TYPE : $JDK_TYPE"
+echo "PRODUCT_PACK_NAME : $PRODUCT_PACK_NAME"
+echo "CF_DBMS_VERSION : $CF_DBMS_VERSION"
+echo "CF_DB_PASSWORD : $CF_DB_PASSWORD"
+echo "CF_DB_USERNAME : $CF_DB_USERNAME"
+echo "CF_DB_HOST : $CF_DB_HOST"
+echo "CF_DB_PORT : $CF_DB_PORT"
+echo "CF_DB_PORT : $CF_DB_PORT"
+echo "CF_DB_PORT : $CF_DB_PORT"
+echo "CF_DB_PORT : $CF_DB_PORT"
+echo "Product pack location : $PRODUCT_PACK_LOCATION"
+log "Listing current dir:"; ls -la
+ echo "1 Current directory: $(pwd)"
+    echo "Contents:"
+    ls -l
+
 function log_info(){
     echo "[INFO][$(date '+%Y-%m-%d %H:%M:%S')]: $1"
 }
@@ -62,45 +78,89 @@ function log_error(){
     exit 1
 }
 
-function install_jdk11(){
-    jdk11="ADOPT_OPEN_JDK11"
-    mkdir -p /opt/${jdk11}
-    jdk_file2=$(jq -r '.jdk[] | select ( .name == '\"${jdk11}\"') | .file_name' ${INFRA_JSON})
-    wget -q https://integration-testgrid-resources.s3.amazonaws.com/lib/jdk/$jdk_file2.tar.gz
-    tar -xzf "$jdk_file2.tar.gz" -C /opt/${jdk11} --strip-component=1
+# function install_jdk11(){
+#     echo "install_jdk11.."
 
-    export JAVA_HOME=/opt/${jdk11}
-}
+#     jdk11="ADOPT_OPEN_JDK11"
+#     mkdir -p /opt/${jdk11}
+#     jdk_file2=$(jq -r '.jdk[] | select ( .name == '\"${jdk11}\"') | .file_name' ${INFRA_JSON})
+#     wget -q https://integration-testgrid-resources.s3.amazonaws.com/lib/jdk/$jdk_file2.tar.gz
+#     tar -xzf "$jdk_file2.tar.gz" -C /opt/${jdk11} --strip-component=1
 
-function install_jdks(){
+#     export JAVA_HOME=/opt/${jdk11}
+#     echo "JAVA_HOME: $JAVA_HOME"
+# }
+
+# function install_jdks(){
+#     mkdir -p /opt/${jdk_name}
+#     jdk_file=$(jq -r '.jdk[] | select ( .name == '\"${jdk_name}\"') | .file_name' ${INFRA_JSON})
+#     wget -q https://integration-testgrid-resources.s3.amazonaws.com/lib/jdk/$jdk_file.tar.gz
+#     tar -xzf "$jdk_file.tar.gz" -C /opt/${jdk_name} --strip-component=1
+
+#     export JAVA_HOME=/opt/${jdk_name}
+#     echo "JAVA_HOME: $JAVA_HOME"
+# }
+
+# function set_jdk(){
+#     jdk_name=$1
+#     #When running Integration tests for JDK 17 or 21, JDK 11 is also required for compilation.
+#     if [[ "$jdk_name" == "ADOPT_OPEN_JDK17" ]] || [[ "$jdk_name" == "ADOPT_OPEN_JDK21" ]]; then
+#         echo "Installing " + $jdk_name
+#         install_jdks
+#         echo $JAVA_HOME
+#         #setting JAVA_HOME to JDK 11 to compile
+#         install_jdk11
+#         echo $JAVA_HOME 
+#     else
+#         echo "Installing " + $jdk_name
+#         install_jdks
+#         echo $JAVA_HOME
+        
+#     fi
+# }
+
+function install_jdks() {
     mkdir -p /opt/${jdk_name}
-    jdk_file=$(jq -r '.jdk[] | select ( .name == '\"${jdk_name}\"') | .file_name' ${INFRA_JSON})
+    jdk_file=$(jq -r '.jdk[] | select(.name == '\"${jdk_name}\"') | .file_name' ${INFRA_JSON})
     wget -q https://integration-testgrid-resources.s3.amazonaws.com/lib/jdk/$jdk_file.tar.gz
     tar -xzf "$jdk_file.tar.gz" -C /opt/${jdk_name} --strip-component=1
 
     export JAVA_HOME=/opt/${jdk_name}
-    echo $JAVA_HOME
-}
+    export PATH="$JAVA_HOME/bin:$PATH"
 
-function set_jdk(){
-    jdk_name=$1
-    #When running Integration tests for JDK 17 or 21, JDK 11 is also required for compilation.
-    if [[ "$jdk_name" == "ADOPT_OPEN_JDK17" ]] || [[ "$jdk_name" == "ADOPT_OPEN_JDK21" ]]; then
-        echo "Installing " + $jdk_name
-        install_jdks
-        echo $JAVA_HOME
-        #setting JAVA_HOME to JDK 11 to compile
-        install_jdk11
-        echo $JAVA_HOME 
+    echo "JAVA_HOME set to: $JAVA_HOME"
+    if [[ -x "$JAVA_HOME/bin/java" ]]; then
+        echo "Java binary found: $JAVA_HOME/bin/java"
+        "$JAVA_HOME/bin/java" -version
     else
-        echo "Installing " + $jdk_name
-        install_jdks
-        echo $JAVA_HOME
-        
+        echo "Java binary not found in $JAVA_HOME/bin"
     fi
 }
 
+function set_jdk() {
+    jdk_name=$1
+    echo "Requested JDK: $jdk_name"
+
+    # When running Integration tests for JDK 17 or 21, JDK 11 is also required for compilation.
+    if [[ "$jdk_name" == "ADOPT_OPEN_JDK17" ]] || [[ "$jdk_name" == "ADOPT_OPEN_JDK21" ]]; then
+        echo "Installing $jdk_name..."
+        install_jdks
+        echo "Active JAVA_HOME (for runtime): $JAVA_HOME"
+
+        echo "Installing ADOPT_OPEN_JDK11 (for compilation)..."
+        install_jdk11
+        echo "Active JAVA_HOME (for compilation): $JAVA_HOME"
+    else
+        echo "Installing $jdk_name..."
+        install_jdks
+        echo "Active JAVA_HOME: $JAVA_HOME"
+    fi
+}
+
+log "Listing current dir:"; ls -la
+
 function export_db_params(){
+    echo "export_db_params"
     db_name=$1
 
     export WSO2SHARED_DB_DRIVER=$(jq -r '.jdbc[] | select ( .name == '\"${db_name}\"' ) | .driver' ${INFRA_JSON})
@@ -118,6 +178,9 @@ function export_db_params(){
 }
 
 source /etc/environment
+ echo "2 Current directory: $(pwd)"
+    echo "Contents:"
+    ls -l
 
 log_info "Clone test repository"
 if [ ! -d $TEST_REPOSITORY_NAME ];
@@ -128,11 +191,17 @@ fi
 log_info "Exporting JDK"
 set_jdk ${JDK_TYPE}
 
-pwd
+ echo "3 Current directory: $(pwd)"
+    echo "Contents:"
+    ls -l
 
 db_file=$(jq -r '.jdbc[] | select ( .name == '\"${DB_TYPE}\"') | .file_name' ${INFRA_JSON})
 wget -q https://integration-testgrid-resources.s3.amazonaws.com/lib/jdbc/${db_file}.jar  -P $TESTGRID_DIR/${PRODUCT_PACK_NAME}/repository/components/lib
 
+ echo "4 Current directory: $(pwd)"
+    echo "Contents:"
+    ls -l
+    
 sed -i "s|DB_HOST|${CF_DB_HOST}|g" ${INFRA_JSON}
 sed -i "s|DB_USERNAME|${CF_DB_USERNAME}|g" ${INFRA_JSON}
 sed -i "s|DB_PASSWORD|${CF_DB_PASSWORD}|g" ${INFRA_JSON}
@@ -220,4 +289,3 @@ mv cypress/reports test-results/ || true
 [[ -d cypress/videos      ]] && mv cypress/videos test-results/
 [[ -d cypress/hars        ]] && mv cypress/hars test-results/
 [[ -d cypress/logs        ]] && mv cypress/logs test-results/
-
