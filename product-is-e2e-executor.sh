@@ -64,10 +64,6 @@ echo "CF_DB_PORT : $CF_DB_PORT"
 echo "CF_DB_PORT : $CF_DB_PORT"
 echo "CF_DB_PORT : $CF_DB_PORT"
 echo "Product pack location : $PRODUCT_PACK_LOCATION"
-log "Listing current dir:"; ls -la
- echo "1 Current directory: $(pwd)"
-    echo "Contents:"
-    ls -l
 
 function log_info(){
     echo "[INFO][$(date '+%Y-%m-%d %H:%M:%S')]: $1"
@@ -77,47 +73,6 @@ function log_error(){
     echo "[ERROR][$(date '+%Y-%m-%d %H:%M:%S')]: $1"
     exit 1
 }
-
-# function install_jdk11(){
-#     echo "install_jdk11.."
-
-#     jdk11="ADOPT_OPEN_JDK11"
-#     mkdir -p /opt/${jdk11}
-#     jdk_file2=$(jq -r '.jdk[] | select ( .name == '\"${jdk11}\"') | .file_name' ${INFRA_JSON})
-#     wget -q https://integration-testgrid-resources.s3.amazonaws.com/lib/jdk/$jdk_file2.tar.gz
-#     tar -xzf "$jdk_file2.tar.gz" -C /opt/${jdk11} --strip-component=1
-
-#     export JAVA_HOME=/opt/${jdk11}
-#     echo "JAVA_HOME: $JAVA_HOME"
-# }
-
-# function install_jdks(){
-#     mkdir -p /opt/${jdk_name}
-#     jdk_file=$(jq -r '.jdk[] | select ( .name == '\"${jdk_name}\"') | .file_name' ${INFRA_JSON})
-#     wget -q https://integration-testgrid-resources.s3.amazonaws.com/lib/jdk/$jdk_file.tar.gz
-#     tar -xzf "$jdk_file.tar.gz" -C /opt/${jdk_name} --strip-component=1
-
-#     export JAVA_HOME=/opt/${jdk_name}
-#     echo "JAVA_HOME: $JAVA_HOME"
-# }
-
-# function set_jdk(){
-#     jdk_name=$1
-#     #When running Integration tests for JDK 17 or 21, JDK 11 is also required for compilation.
-#     if [[ "$jdk_name" == "ADOPT_OPEN_JDK17" ]] || [[ "$jdk_name" == "ADOPT_OPEN_JDK21" ]]; then
-#         echo "Installing " + $jdk_name
-#         install_jdks
-#         echo $JAVA_HOME
-#         #setting JAVA_HOME to JDK 11 to compile
-#         install_jdk11
-#         echo $JAVA_HOME 
-#     else
-#         echo "Installing " + $jdk_name
-#         install_jdks
-#         echo $JAVA_HOME
-        
-#     fi
-# }
 
 function install_jdks() {
     mkdir -p /opt/${jdk_name}
@@ -156,8 +111,6 @@ function set_jdk() {
         echo "Active JAVA_HOME: $JAVA_HOME"
     fi
 }
-
-log "Listing current dir:"; ls -la
 
 function export_db_params(){
     echo "export_db_params"
