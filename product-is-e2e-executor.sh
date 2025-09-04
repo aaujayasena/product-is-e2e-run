@@ -209,14 +209,6 @@ sed -i "s|DB_NAME|${DB_NAME}|g" ${INFRA_JSON}
 
 export_db_params ${DB_TYPE}
 
-# Delete if the folder is available
-rm -rf $TEST_REPOSITORY_PACK_DIR
-mkdir -p $TEST_REPOSITORY_PACK_DIR
-
-log_info "Navigating to cypress test directory"
-cd $TEST_REPOSITORY_PACK_DIR
-ls $TEST_REPOSITORY_PACK_DIR
-
 WSO2_HOME="${TESTGRID_DIR}/${PRODUCT_PACK_NAME}"
 log_info "WSO2_HOME=${WSO2_HOME}"
 
@@ -241,7 +233,6 @@ EOT
 export JAVA_HOME=/opt/${jdk_name}
 echo $JAVA_HOME
 
-
 # Pick startup script (adjust if your pack uses a different script name)
 START_SH="${WSO2_HOME}/bin/wso2server.sh"
 
@@ -263,6 +254,10 @@ for i in {1..60}; do
     log_error "WSO2 did not start within expected time"
   fi
 done
+
+log_info "Navigating to cypress test directory"
+cd $TEST_REPOSITORY_PACK_DIR
+ls $TEST_REPOSITORY_PACK_DIR
 
 echo "Installing npm dependencies…"
 # Avoid big/unnecessary downloads
