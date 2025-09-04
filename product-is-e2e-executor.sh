@@ -39,7 +39,7 @@ TEST_REPOSITORY_PACK_DIR="$TESTGRID_DIR/$TEST_REPOSITORY_NAME"
 
 # CloudFormation properties
 CFN_PROP_FILE="${TESTGRID_DIR}/cfn-props.properties"
-TEST_RUN_COMMAND="${TEST_RUN_COMMAND:-npm run test-onprem}"
+TEST_RUN_COMMAND="${TEST_RUN_COMMAND:-npm run test}"
 
 
 JDK_TYPE=$(grep -w "JDK_TYPE" ${CFN_PROP_FILE} | cut -d"=" -f2)
@@ -224,10 +224,6 @@ export PUPPETEER_SKIP_DOWNLOAD=1
 export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
 
 npm install 
-
-# Ensure Cypress binary exists (prevents “Cypress executable not found”)
-npx cypress install || true
-npx cypress verify
 
 echo "Running tests: $TEST_RUN_COMMAND"
 export CHROME_BIN=$(command -v google-chrome || true)
