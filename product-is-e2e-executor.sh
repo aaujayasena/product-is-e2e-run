@@ -34,7 +34,7 @@ GIT_USER=$5
 GIT_PASS=$6
 TEST_MODE=$7
 TEST_GROUP=$8
-TEST_REPOSITORY_NAME=$(echo $PRODUCT_REPOSITORY | rev | cut -d'/' -f1 | rev | cut -d'.' -f1)
+TEST_REPOSITORY_NAME=$(echo $TEST_REPOSITORY | rev | cut -d'/' -f1 | rev | cut -d'.' -f1)
 TEST_REPOSITORY_PACK_DIR="$TESTGRID_DIR/$TEST_REPOSITORY_NAME"
 
 # CloudFormation properties
