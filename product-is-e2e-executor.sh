@@ -260,6 +260,12 @@ cd $TEST_REPOSITORY_PACK_DIR
 ls $TEST_REPOSITORY_PACK_DIR
 
 echo "Installing npm dependencies…"
+
+which node || echo "node not found"
+which npm || echo "npm not found"
+echo "Node version: $(node -v 2>/dev/null)"
+echo "NPM version: $(npm -v 2>/dev/null)"
+
 # Avoid big/unnecessary downloads
 export PUPPETEER_SKIP_DOWNLOAD=1
 export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
